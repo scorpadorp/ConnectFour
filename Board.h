@@ -13,9 +13,9 @@ public:
 	bool isLegal(int col);
 	bool isFull();
 	void Clear();
-	int getBoardHeight() { return boardHeight; }
-	int getBoardWidth() { return boardWidth; }
-	int getValue(int x, int y) { return board[x][y]; }
+	int getBoardHeight() const { return boardHeight; }
+	int getBoardWidth() const { return boardWidth; }
+	int getValue(int x, int y) const { return board[x][y]; }
 	void setValue(int x, int y, int z) { board[x][y] = z; }
 protected:
 	const int boardHeight = 6;
