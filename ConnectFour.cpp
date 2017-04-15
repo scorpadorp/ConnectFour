@@ -14,8 +14,6 @@
 
 int main()
 {
-	
-
 	srand(static_cast<unsigned int>(time(0)));
 	int ans;
 	std::string p1, p2 = "BOT", inp = "yes";
