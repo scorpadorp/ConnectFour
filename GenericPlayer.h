@@ -4,9 +4,9 @@
 class Board;
 class GenericPlayer {
 public:
-	GenericPlayer(const std::string& name = "", std::string token = "u");
+	GenericPlayer(const std::string& name, std::string& token);
 	virtual ~GenericPlayer();
-	virtual int getInput(Board& board, std::string playerName) = 0;
+	virtual int getInput(Board& board, std::string& playerName) = 0;
 	std::string getName() { return pName; }
 	std::string getToken() { return pToken; }
 protected:
