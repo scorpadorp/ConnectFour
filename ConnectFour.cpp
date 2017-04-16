@@ -11,42 +11,58 @@
 #include "Human.h"
 #include "Bot.h"
 #include "Point.h"
+using std::cin;
+using std::cout;
 
 int main()
 {
 	srand(static_cast<unsigned int>(time(0)));
-	int ans;
-	std::string p1, p2 = "BOT", inp = "yes";
-	std::cout << "\n-----------------------------------------------------" << std::endl;
-	std::cout << "\t\tWelcome to Connect 4!" << std::endl;
-	std::cout << "-----------------------------------------------------\n\n";
+	int ans; 
+	bool p1human = true, p2human = true;
+	std::string p1, p2, inp = "yes";
+	cout << "\n-----------------------------------------------------" << std::endl;
+	cout << "\t\tWelcome to Connect 4!" << std::endl;
+	cout << "-----------------------------------------------------";
 
-	std::cout << "Main Menu:" << std::endl;
-	std::cout << "1) Player vs Player\n";
-	std::cout << "2) Player vs AI\n";
-	std::cout << "3) Exit\n";
-	std::cout << "\nWhat will it be, stranger?: ";
-	std::cin >> ans;
+	while (true) {
+		cout << "\n\nMain Menu:" << std::endl;
+		cout << "1) Player vs Player\n";
+		cout << "2) Player vs AI\n";
+		cout << "3) AI vs AI\n";
+		cout << "4) Exit\n";
+		cout << "\nWhat will it be, stranger?: ";
+		cin >> ans;
 
-	switch (ans) {
-	case 1: std::cout << "\nWhat are the Player names?\n" << "Human 1: \n";
-		std::cin >> p1;
-		std::cout << "\nPlayer 2: \n";
-		std::cin >> p2;
-		break;
-	case 2: std::cout << "\nGood choice! You will regret it though.\nWhat is your name?: ";
-		std::cin >> p1;
-		break;
-	default:
-		return 0;
+		switch (ans) {
+		case 1: std::cout << "\nWhat are the Player names?\n" << "Human 1: \n";
+			cin >> p1;
+			cout << "\nPlayer 2: \n";
+			cin >> p2;
+			break;
+		case 2: std::cout << "\nGood choice! You will regret it though.\nWhat is your name?: ";
+			cin >> p1;
+			p2 = "BOT";
+			p2human = false;
+			break;
+		case 3: cout << "\nSit back and watch!";
+			p1 = "BOT 1";
+			p2 = "BOT 2";
+			p1human = p2human = false;
+			break;
+		default:
+			return 0;
+		}
+
+		{
+			Game game(p1, p1human, p2, p2human);
+			while (inp == "yes" || inp == "y") {
+				game.Play();
+				cout << "\nDo you want to play again? (Y/N): ";
+				cin >> inp;
+			}
+		}
+		inp = "yes";
+		p1human = true, p2human = true;
 	}
-
-	Game game(p1, p2);
-	while (inp == "yes" || inp == "y") {
-		game.Play();
-		std::cout << "\nDo you want to play again? (Y/N): ";
-		std::cin >> inp;
-	}
-
 	return 0;
 }

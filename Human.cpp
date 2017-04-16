@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 
-Human::Human(const std::string& name, std::string& token) : GenericPlayer(name, token) {}
+Human::Human(const std::string& name, std::string token) : GenericPlayer(name, token) {}
 Human::~Human() {}
 int Human::getInput(Board& board, std::string& playerName) {
 	if (playerName == "BOT") {

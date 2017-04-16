@@ -8,7 +8,8 @@
 
 class Game {
 public:
-	Game(const std::string p1, const std::string p2);
+	Game(const std::string& p1name, bool p1human, const std::string& p2name, bool p2human);
+	~Game();
 	void Play();
 	void changePlayer();
 	void resetGame();
@@ -22,8 +23,8 @@ public:
 	Point longestRun(const std::vector<int>& arr, const int size);
 protected:
 	Board board;
-	Human Player1; // guaranteed human
-	Human Player2; // I want to make it a GenericPlayer pointer so it can point to a human or AI
-	GenericPlayer* playerTurn; // points to the current player (human or AI)
+	GenericPlayer* Player1;
+	GenericPlayer* Player2;
+	GenericPlayer** playerTurn;
 	std::vector<Point> answers;
 };

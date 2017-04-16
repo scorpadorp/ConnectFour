@@ -4,13 +4,20 @@
 #include <iostream>
 #include <string>
 
-Game::Game(const std::string p1, const std::string p2) : Player1(p1, "X"), Player2(p2, "O") {
+Game::Game(const std::string& p1name, bool p1human, const std::string& p2name, bool p2human) : 
+	Player1(p1human ? new Human(p1name, "X") : new Bot(p1name, "X")), Player2(p2human ? new Human(p2name, "O") : new Bot(p2name, "O")) {
 	playerTurn = &Player2;
+}
+
+Game::~Game() { 
+	delete Player1;
+	delete Player2;
 }
 
 void Game::Play() {
 	HANDLE hConsole;
 	hConsole = GetStdHandle(STD_OUTPUT_HANDLE);
+
 	int ans;
 	while (!isGameOver()) {
 		changePlayer();
@@ -18,11 +25,12 @@ void Game::Play() {
 			std::cout << "\n";
 		}
 		board.drawBoard(answers, Player1, Player2, hConsole);
-		std::cout << std::endl << playerTurn->getName() << ", it's your turn!" << "(" << playerTurn->getToken() << ")" << std::endl;
-		ans = playerTurn->getInput(board, playerTurn->getName());
+		std::cout << std::endl << (*playerTurn)->getName() << ", it's your turn!" << "(" << (*playerTurn)->getToken() << ")" << std::endl;
+		ans = (*playerTurn)->getInput(board, (*playerTurn)->getName());
 		bool legalMove = board.isLegal(ans);
+
 		while (!legalMove) {
-			ans = playerTurn->getInput(board, playerTurn->getName());
+			ans = (*playerTurn)->getInput(board, (*playerTurn)->getName());
 			legalMove = board.isLegal(ans);
 		}
 		makeMove(ans);
@@ -32,7 +40,7 @@ void Game::Play() {
 }
 
 void Game::changePlayer() {
-	if (playerTurn->getToken() == Player1.getToken()) {
+	if ((*playerTurn)->getToken() == Player1->getToken()) {
 		playerTurn = &Player2;
 	}
 	else {
@@ -75,11 +83,11 @@ bool Game::wonHoz() {
 		}
 
 		Point info = longestRun(temp, 7);
-		int length = info._x;
-		int index = info._y;
+		int length = info.x;
+		int index = info.y;
 
 		if (length >= 4 && board.getValue(row, 0 + index) != 0) {
-			for (int i = 0; i < 4; ++i) {
+			for (int i = 0; i < length; ++i) {
 				Point soln = Point(row, 0 + index + i);
 				answers.emplace_back(soln);
 			}
@@ -109,8 +117,8 @@ bool Game::wonForwardDiag() {
 		}
 
 		Point part1 = longestRun(ans1, ans1.size());
-		length1 = part1._x;
-		index1 = part1._y;
+		length1 = part1.x;
+		index1 = part1.y;
 
 		if (length1 >= 4 && board.getValue(3 + d - index1, 0 + index1) != 0) {
 			for (int i = 0; i < length1; ++i) {
@@ -121,8 +129,8 @@ bool Game::wonForwardDiag() {
 		}
 
 		Point part2 = longestRun(ans2, ans2.size());
-		length2 = part2._x;
-		index2 = part2._y;
+		length2 = part2.x;
+		index2 = part2.y;
 
 		if (length2 >= 4 && board.getValue(5 - index2, 3 - d + index2) != 0) {
 			for (int i = 0; i < length2; ++i) {
@@ -156,8 +164,8 @@ bool Game::wonBackwardDiag() {
 		}
 
 		Point part1 = longestRun(ans1, ans1.size());
-		length1 = part1._x;
-		index1 = part1._y;
+		length1 = part1.x;
+		index1 = part1.y;
 
 		if (length1 >= 4 && board.getValue(2 - d + index1, 0 + index1) != 0) {
 			for (int i = 0; i < length1; ++i) {
@@ -168,8 +176,8 @@ bool Game::wonBackwardDiag() {
 		}
 
 		Point part2 = longestRun(ans2, ans2.size());
-		length2 = part2._x;
-		index2 = part2._y;
+		length2 = part2.x;
+		index2 = part2.y;
 
 		if (length2 >= 4 && board.getValue(0 + index2, 3 - d + index2) != 0) {
 			for (int i = 0; i < length2; ++i) {
@@ -224,7 +232,7 @@ bool Game::isGameOver() {
 		for (int i = 0; i < 20; ++i) {
 			std::cout << "\n";
 		}
-		std::cout << playerTurn->getName() << " has won!" << std::endl;
+		std::cout << (*playerTurn)->getName() << " has won!" << std::endl;
 		return true;
 	}
 
@@ -250,7 +258,7 @@ void Game::makeMove(int col) {
 	}
 
 	int ans;
-	if (playerTurn->getToken() == Player1.getToken()) {
+	if ((*playerTurn)->getToken() == Player1->getToken()) {
 		ans = 1;
 	}
 	else {
