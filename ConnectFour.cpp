@@ -62,7 +62,7 @@ int main()
 			}
 		}
 		inp = "yes";
-		p1human = true, p2human = true;
+		p1human = p2human = true;
 	}
 	return 0;
 }

@@ -26,16 +26,19 @@ void Game::Play() {
 		}
 		board.drawBoard(answers, Player1, Player2, hConsole);
 		std::cout << std::endl << (*playerTurn)->getName() << ", it's your turn!" << "(" << (*playerTurn)->getToken() << ")" << std::endl;
-		ans = (*playerTurn)->getInput(board, (*playerTurn)->getName());
+		ans = (*playerTurn)->getInput(*this, board);
 		bool legalMove = board.isLegal(ans);
 
 		while (!legalMove) {
-			ans = (*playerTurn)->getInput(board, (*playerTurn)->getName());
+			ans = (*playerTurn)->getInput(*this, board);
 			legalMove = board.isLegal(ans);
 		}
-		makeMove(ans);
+		makeMove(pointToMove(ans));
 	}
 	board.drawBoard(answers, Player1, Player2, hConsole);
+	std::cout << std::endl << Player1->getName() << " wins: " << p1Wins << std::endl;
+	std::cout << Player2->getName() << " wins: " << p2Wins << std::endl;
+	std::cout << "Draws: " << draws << std::endl;
 	resetGame();
 }
 
@@ -57,7 +60,7 @@ bool Game::areAllElementsEqual(int arr[], const int size) {
 	return true;
 }
 
-bool Game::wonVert() {
+bool Game::wonVert(bool pm) {
 	for (int col = 0; col < board.getBoardWidth(); ++col) {
 		for (int row = 0; row < (board.getBoardHeight() - 4 + 1); ++row) {
 			int temp[4] = { board.getValue(row, col) , board.getValue(row + 1, col),
@@ -65,8 +68,10 @@ bool Game::wonVert() {
 
 			if (areAllElementsEqual(temp, 4) && board.getValue(row, col) != 0) {
 				for (int i = row; i < (row + 4); ++i) {
-					Point soln = Point(i, col);
-					answers.emplace_back(soln);
+					if (!pm) {
+						Point soln = Point(i, col);
+						answers.emplace_back(soln);
+					}
 				}
 				return true;
 			}
@@ -75,7 +80,7 @@ bool Game::wonVert() {
 	return false;
 }
 
-bool Game::wonHoz() {
+bool Game::wonHoz(bool pm) {
 	std::vector<int> temp;
 	for (int row = 0; row < 6; ++row) {
 		for (int k = 0; k < 7; ++k) {
@@ -88,8 +93,10 @@ bool Game::wonHoz() {
 
 		if (length >= 4 && board.getValue(row, 0 + index) != 0) {
 			for (int i = 0; i < length; ++i) {
-				Point soln = Point(row, 0 + index + i);
-				answers.emplace_back(soln);
+				if (!pm) {
+					Point soln = Point(row, 0 + index + i);
+					answers.emplace_back(soln);
+				}
 			}
 			return true;
 		}
@@ -98,7 +105,7 @@ bool Game::wonHoz() {
 	return false;
 }
 
-bool Game::wonForwardDiag() {
+bool Game::wonForwardDiag(bool pm) {
 	/*
 	There are three different lengths of diagonals: (4,5,6).
 	The forward diagonals of length 4 start at board[3][0] & board[5][3].
@@ -122,8 +129,10 @@ bool Game::wonForwardDiag() {
 
 		if (length1 >= 4 && board.getValue(3 + d - index1, 0 + index1) != 0) {
 			for (int i = 0; i < length1; ++i) {
-				Point soln = Point(3 + d - index1 - i, 0 + index1 + i);
-				answers.emplace_back(soln);
+				if (!pm) {
+					Point soln = Point(3 + d - index1 - i, 0 + index1 + i);
+					answers.emplace_back(soln);
+				}
 			}
 			return true;
 		}
@@ -134,8 +143,10 @@ bool Game::wonForwardDiag() {
 
 		if (length2 >= 4 && board.getValue(5 - index2, 3 - d + index2) != 0) {
 			for (int i = 0; i < length2; ++i) {
-				Point soln = Point(5 - index2 - i, 3 - d + index2 + i);
-				answers.emplace_back(soln);
+				if (!pm) {
+					Point soln = Point(5 - index2 - i, 3 - d + index2 + i);
+					answers.emplace_back(soln);
+				}
 			}
 			return true;
 		}
@@ -146,7 +157,7 @@ bool Game::wonForwardDiag() {
 	return false;
 }
 
-bool Game::wonBackwardDiag() {
+bool Game::wonBackwardDiag(bool pm) {
 	/*
 	Same idea as the forward diagonal, but the starting positions differ
 	and after each dimension the starting positions get closer to the
@@ -169,8 +180,10 @@ bool Game::wonBackwardDiag() {
 
 		if (length1 >= 4 && board.getValue(2 - d + index1, 0 + index1) != 0) {
 			for (int i = 0; i < length1; ++i) {
-				Point soln = Point(2 - d + index1 + i, 0 + index1 + i);
-				answers.emplace_back(soln);
+				if (!pm) {
+					Point soln = Point(2 - d + index1 + i, 0 + index1 + i);
+					answers.emplace_back(soln);
+				}
 			}
 			return true;
 		}
@@ -181,8 +194,10 @@ bool Game::wonBackwardDiag() {
 
 		if (length2 >= 4 && board.getValue(0 + index2, 3 - d + index2) != 0) {
 			for (int i = 0; i < length2; ++i) {
-				Point soln = Point(0 + index2 + i, 3 - d + index2 + i);
-				answers.emplace_back(soln);
+				if (!pm) {
+					Point soln = Point(0 + index2 + i, 3 - d + index2 + i);
+					answers.emplace_back(soln);
+				}
 			}
 			return true;
 		}
@@ -233,6 +248,7 @@ bool Game::isGameOver() {
 			std::cout << "\n";
 		}
 		std::cout << (*playerTurn)->getName() << " has won!" << std::endl;
+		((*playerTurn)->getName() == Player1->getName()) ? p1Wins++ : p2Wins++;
 		return true;
 	}
 
@@ -241,13 +257,14 @@ bool Game::isGameOver() {
 			std::cout << "\n";
 		}
 		std::cout << "Draw. No one won!" << std::endl;
+		draws++;
 		return true;
 	}
 
 	return false;
 }
 
-void Game::makeMove(int col) {
+Point Game::pointToMove(int col) {
 	// Simulate gravity, look at column and find bottom-most empty spot
 	int row;
 	for (int i = board.getBoardHeight() - 1; i >= 0; --i) {
@@ -256,15 +273,13 @@ void Game::makeMove(int col) {
 			break;
 		}
 	}
+	return Point(row, col);
+}
 
+void Game::makeMove(Point& point) {
 	int ans;
-	if ((*playerTurn)->getToken() == Player1->getToken()) {
-		ans = 1;
-	}
-	else {
-		ans = 2;
-	}
-	board.setValue(row, col, ans);
+	((*playerTurn)->getToken() == Player1->getToken()) ? ans = 1 : ans = 2; 
+	board.setValue(point.x, point.y, ans);
 }
 
 void Game::resetGame() {
