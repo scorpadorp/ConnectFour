@@ -13,7 +13,6 @@ int Bot::rating(Game& game, Board& board, Point& point) {
 	board.setValue(point.x, point.y, 2);
 	if (game.wonBackwardDiag(true) || game.wonForwardDiag(true) ||
 		game.wonHoz(true) || game.wonVert(true)) {
-		std::cout << "you won!" << std::endl;
 		board.setValue(point.x, point.y, 0);
 		return 1000;
 	}
@@ -21,7 +20,6 @@ int Bot::rating(Game& game, Board& board, Point& point) {
 	board.setValue(point.x, point.y, 1);
 	if (game.wonBackwardDiag(true) || game.wonForwardDiag(true) ||
 		game.wonHoz(true) || game.wonVert(true)) {
-		std::cout << "you won!" << std::endl;
 		board.setValue(point.x, point.y, 0);
 		return 500;
 	}
@@ -35,10 +33,11 @@ int Bot::getInput(Game& game, Board& board) {
 	unsigned seed = std::chrono::system_clock::now().time_since_epoch().count();
 	std::default_random_engine generator(seed);
 	std::binomial_distribution<int> dist(6, 0.4);
-	best_move = dist(generator);
+	do { best_move = dist(generator);
+	} while (!board.isLegal(best_move, true));
 
 	for (int move = 0; move < board.getBoardWidth(); ++move) {
-		if (board.isLegal(move)) {
+		if (board.isLegal(move, true)) {
 			Point now = game.pointToMove(move);
 			score = rating(game, board, now);
 			if (score > best_score) {

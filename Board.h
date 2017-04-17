@@ -10,7 +10,7 @@ public:
 	~Board();
 	void drawBoard(std::vector<Point>& ans, GenericPlayer* p1, GenericPlayer* p2, HANDLE &h);
 	bool isColored(std::vector<Point>& ans, int x, int y);
-	bool isLegal(int col);
+	bool isLegal(int col, bool pm = false);
 	bool isFull();
 	void Clear();
 	int getBoardHeight() const { return boardHeight; }

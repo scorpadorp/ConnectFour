@@ -50,9 +50,11 @@ bool Board::isColored(std::vector<Point>& ans, int x, int y) {
 	return false;
 }
 
-bool Board::isLegal(int col) {
+bool Board::isLegal(int col, bool pm) {
 	if (board[0][col] != 0) {
-		std::cout << "Column is full! ";
+		if (!pm) {
+			std::cout << "Column is full!";
+		}
 		return false;
 	}
 	return true;
