@@ -13,24 +13,22 @@ public:
 	void Play();
 	void changePlayer();
 	void resetGame();
-	GenericPlayer** getPlayerTurn() { return playerTurn; }
-	bool areAllElementsEqual(int arr[], const int size);
-	bool wonVert(bool pm = false);
-	bool wonHoz(bool pm = false);
-	bool wonForwardDiag(bool pm = false);
-	bool wonBackwardDiag(bool pm = false);
-	bool isGameOver();
 	void makeMove(Point& point);
+	bool isGameOver();
+	std::vector<int> wonVert(bool pm = false, int player = 0);
+	std::vector<int> wonHoz(bool pm = false, int player = 0);
+	std::vector<int> wonForwardDiag(bool pm = false, int player = 0);
+	std::vector<int> wonBackwardDiag(bool pm = false, int player = 0);
 	Point pointToMove(int col);
-	Point longestRun(const std::vector<int>& arr, const int size);
+	Point longestRun(const std::vector<int>& arr, const int size, int token = -2);
+	GenericPlayer** getPlayerTurn() { return playerTurn; }
 protected:
 	Board board;
 	GenericPlayer* Player1;
 	GenericPlayer* Player2;
 	GenericPlayer** playerTurn;
 	std::vector<Point> answers;
-	std::vector<Point> moves;
-	int p1Wins = 0;
-	int p2Wins = 0;
-	int draws = 0;
+	short unsigned p1Wins = 0;
+	short unsigned p2Wins = 0;
+	short unsigned draws = 0;
 };

@@ -3,7 +3,7 @@
 #include <iostream>
 #include <string>
 
-Human::Human(const std::string& name, std::string token) : GenericPlayer(name, token) {}
+Human::Human(const std::string& name, std::string token, int value) : GenericPlayer(name, token, value) {}
 Human::~Human() {}
 int Human::getInput(Game& game, Board& board) {
 	int choice;

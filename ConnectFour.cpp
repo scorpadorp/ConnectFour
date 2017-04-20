@@ -34,7 +34,7 @@ int main()
 		cin >> ans;
 
 		switch (ans) {
-		case 1: std::cout << "\nWhat are the Player names?\n" << "Human 1: \n";
+		case 1: std::cout << "\nWhat are the Player names?\n" << "Player 1: \n";
 			cin >> p1;
 			cout << "\nPlayer 2: \n";
 			cin >> p2;

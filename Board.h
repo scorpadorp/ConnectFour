@@ -15,7 +15,7 @@ public:
 	void Clear();
 	int getBoardHeight() const { return boardHeight; }
 	int getBoardWidth() const { return boardWidth; }
-	int getValue(int x, int y) const { return board[x][y]; }
+	int getValue(int x, int y) const { if (x > 0 || x < boardHeight || y > 0 || y < boardWidth) return board[x][y]; else return -1; }
 	void setValue(int x, int y, int z) { board[x][y] = z; }
 protected:
 	const int boardHeight = 6;
