@@ -1,4 +1,3 @@
-//#include "stdafx.h"
 #include "Bot.h"
 #include <string>
 #include <iostream>
@@ -15,7 +14,7 @@ void Bot::checkStatusAll(Game& game, Board& board, std::vector<double>& p_me, st
 	std::vector<int> hoz_enemy = game.wonHoz(true, enemy);
 	std::vector<int> fdiag_enemy = game.wonForwardDiag(true, enemy);
 	std::vector<int> bdiag_enemy = game.wonBackwardDiag(true, enemy);
-	
+
 	for (int i = 0; i < p_me.size(); ++i) {
 		p_me.at(i) = vert_me.at(i)*1.0 + hoz_me.at(i)*1.14 + fdiag_me.at(i)*1.0 + bdiag_me.at(i)*1.0;
 		p_enemy.at(i) = vert_enemy.at(i)*1.0 + hoz_enemy.at(i)*1.1 + fdiag_enemy.at(i)*1.0 + bdiag_enemy.at(i)*1.0;
@@ -31,7 +30,7 @@ double Bot::rating(Game& game, Board& board, int player) {
 	std::vector<double> num_of_234_p_enemy(4, 0);
 
 	if ((*game.getPlayerTurn())->getValue() == player)
-		checkStatusAll(game, board, num_of_234_p_me, num_of_234_p_enemy, player, enemy); 
+		checkStatusAll(game, board, num_of_234_p_me, num_of_234_p_enemy, player, enemy);
 	else
 		checkStatusAll(game, board, num_of_234_p_enemy, num_of_234_p_me, enemy, player);
 
