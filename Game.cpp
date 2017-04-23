@@ -1,17 +1,14 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "Game.h"
 #include <algorithm>
 #include <iostream>
 #include <string>
+#include <memory>
 
-Game::Game(const std::string& p1name, bool p1human, const std::string& p2name, bool p2human) : 
-	Player1(p1human ? new Human(p1name, "X", 1) : new Bot(p1name, "X", 1)), Player2(p2human ? new Human(p2name, "O", 2) : new Bot(p2name, "O", 2)) {
+Game::Game(const std::string& p1name, bool p1human, const std::string& p2name, bool p2human, double diff1, double diff2) :
+	Player1(p1human ? std::make_unique<Human>(p1name, "X", 1) : std::make_unique<Bot>(p1name, "X", 1, diff1)),
+	Player2(p2human ? std::make_unique<Human>(p2name, "O", 2) : std::make_unique<Bot>(p2name, "O", 2, diff2)) {
 	playerTurn = &Player2;
-}
-
-Game::~Game() { 
-	delete Player1;
-	delete Player2;
 }
 
 void Game::Play() {
@@ -53,20 +50,20 @@ void Game::changePlayer() {
 }
 
 std::vector<int> Game::wonVert(bool pm, int player) {
-	std::vector<int> num_of_234_p1_p2(6, 0);
+	std::vector<int> num_of_234(4, 0);
 	std::vector<int> temp;
 	for (int row = 0; row < board.getBoardWidth(); ++row) {
 		for (int col = 0; col < board.getBoardHeight(); ++col) {
 			temp.emplace_back(board.getValue(col, row));
 		}
 
-		Point info = longestRun(temp, board.getBoardHeight());
+		Point info = longestRun(temp, board.getBoardHeight(), player);
 		int length = info.x;
 		int index = info.y;
 
 		for (int len = 2; len < 4; ++len) { //check for lengths of 2 and 3
 			if (length == len)
-				(player == 1) ? ++num_of_234_p1_p2.at(len - 2) : ++num_of_234_p1_p2.at(len + 1);
+				++num_of_234.at(len - 1);
 		}
 
 		if (length >= 4) {
@@ -76,42 +73,42 @@ std::vector<int> Game::wonVert(bool pm, int player) {
 					answers.emplace_back(soln);
 				}
 			}
-			(player == 1) ? ++num_of_234_p1_p2.at(2) : ++num_of_234_p1_p2.at(5);
+			++num_of_234.at(3);
 		}
 		temp.clear();
 	}
-	return num_of_234_p1_p2;
+	return num_of_234;
 }
 
 std::vector<int> Game::wonHoz(bool pm, int player) {
-	std::vector<int> num_of_234_p1_p2(6, 0);
+	std::vector<int> num_of_1234(4, 0);
 	std::vector<int> temp;
 	for (int row = 0; row < board.getBoardHeight(); ++row) {
 		for (int k = 0; k < board.getBoardWidth(); ++k) {
 			temp.emplace_back(board.getValue(row, k));
 		}
 
-		Point info = longestRun(temp, board.getBoardWidth());
+		Point info = longestRun(temp, board.getBoardWidth(), player);
 		int length = info.x;
 		int index = info.y;
 
 		for (int len = 2; len < 4; ++len) { //check for lengths of 2 and 3
 			if (length == len)
-				(player == 1) ? ++num_of_234_p1_p2.at(len - 2) : ++num_of_234_p1_p2.at(len + 1);
+				++num_of_1234.at(len - 1);
 		}
 
-		if (length >= 4) { //update for lengths 2 and 3
+		if (length >= 4) {
 			for (int i = 0; i < length; ++i) {
 				if (!pm) {
 					Point soln = Point(row, 0 + index + i);
 					answers.emplace_back(soln);
 				}
 			}
-			(player == 1) ? ++num_of_234_p1_p2.at(2) : ++num_of_234_p1_p2.at(5);
+			++num_of_1234.at(3);
 		}
 		temp.clear();
 	}
-	return num_of_234_p1_p2;
+	return num_of_1234;
 }
 
 std::vector<int> Game::wonForwardDiag(bool pm, int player) {
@@ -121,7 +118,7 @@ std::vector<int> Game::wonForwardDiag(bool pm, int player) {
 	Each dimension (d) after, the starting positions get closer to the
 	bottom-left corner of the board, hence board[3+d][0] and board[5][3-d]
 	*/
-	std::vector<int> num_of_234_p1_p2(6, 0);
+	std::vector<int> num_of_234(4, 0);
 	int length1, index1;
 	int length2, index2;
 	std::vector<int> ans1;
@@ -133,13 +130,13 @@ std::vector<int> Game::wonForwardDiag(bool pm, int player) {
 			ans2.emplace_back(board.getValue(5 - i, 3 - d + i));
 		}
 
-		Point part1 = longestRun(ans1, ans1.size());
+		Point part1 = longestRun(ans1, ans1.size(), player);
 		length1 = part1.x;
 		index1 = part1.y;
 
 		for (int len = 2; len < 4; ++len) { //check for lengths of 2 and 3
 			if (length1 == len)
-				(player == 1) ? ++num_of_234_p1_p2.at(len - 2) : ++num_of_234_p1_p2.at(len + 1);
+				++num_of_234.at(len - 1);
 		}
 
 		if (length1 >= 4) {
@@ -149,16 +146,16 @@ std::vector<int> Game::wonForwardDiag(bool pm, int player) {
 					answers.emplace_back(soln);
 				}
 			}
-			(player == 1) ? ++num_of_234_p1_p2.at(2) : ++num_of_234_p1_p2.at(5);
+			++num_of_234.at(3);
 		}
 
-		Point part2 = longestRun(ans2, ans2.size());
+		Point part2 = longestRun(ans2, ans2.size(), player);
 		length2 = part2.x;
 		index2 = part2.y;
 
 		for (int len = 2; len < 4; ++len) { //check for lengths of 2 and 3
 			if (length2 == len)
-				(player == 1) ? ++num_of_234_p1_p2.at(len - 2) : ++num_of_234_p1_p2.at(len + 1);
+				++num_of_234.at(len - 1);
 		}
 
 		if (length2 >= 4) {
@@ -168,13 +165,13 @@ std::vector<int> Game::wonForwardDiag(bool pm, int player) {
 					answers.emplace_back(soln);
 				}
 			}
-			(player == 1) ? ++num_of_234_p1_p2.at(2) : ++num_of_234_p1_p2.at(5);
+			++num_of_234.at(3);
 		}
 
 		ans1.clear();
 		ans2.clear();
 	}
-	return num_of_234_p1_p2;
+	return num_of_234;
 }
 
 std::vector<int> Game::wonBackwardDiag(bool pm, int player) {
@@ -183,7 +180,7 @@ std::vector<int> Game::wonBackwardDiag(bool pm, int player) {
 	and after each dimension the starting positions get closer to the
 	top-left of the board
 	*/
-	std::vector<int> num_of_234_p1_p2(6, 0);
+	std::vector<int> num_of_234(4, 0);
 	int length1, index1;
 	int length2, index2;
 	std::vector<int> ans1;
@@ -195,13 +192,13 @@ std::vector<int> Game::wonBackwardDiag(bool pm, int player) {
 			ans2.emplace_back(board.getValue(0 + i, 3 - d + i));
 		}
 
-		Point part1 = longestRun(ans1, ans1.size());
+		Point part1 = longestRun(ans1, ans1.size(), player);
 		length1 = part1.x;
 		index1 = part1.y;
 
 		for (int len = 2; len < 4; ++len) { //check for lengths of 2 and 3
 			if (length1 == len)
-				(player == 1) ? ++num_of_234_p1_p2.at(len - 2) : ++num_of_234_p1_p2.at(len + 1);
+				++num_of_234.at(len - 1);
 		}
 
 		if (length1 >= 4) {
@@ -211,16 +208,16 @@ std::vector<int> Game::wonBackwardDiag(bool pm, int player) {
 					answers.emplace_back(soln);
 				}
 			}
-			(player == 1) ? ++num_of_234_p1_p2.at(2) : ++num_of_234_p1_p2.at(5);
+			++num_of_234.at(3);
 		}
 
-		Point part2 = longestRun(ans2, ans2.size());
+		Point part2 = longestRun(ans2, ans2.size(), player);
 		length2 = part2.x;
 		index2 = part2.y;
 
 		for (int len = 2; len < 4; ++len) { //check for lengths of 2 and 3
 			if (length2 == len)
-				(player == 1) ? ++num_of_234_p1_p2.at(len - 2) : ++num_of_234_p1_p2.at(len + 1);
+				++num_of_234.at(len - 1);
 		}
 
 		if (length2 >= 4) {
@@ -230,21 +227,28 @@ std::vector<int> Game::wonBackwardDiag(bool pm, int player) {
 					answers.emplace_back(soln);
 				}
 			}
-			(player == 1) ? ++num_of_234_p1_p2.at(2) : ++num_of_234_p1_p2.at(5);
+			++num_of_234.at(3);
 		}
 
 		ans1.clear();
 		ans2.clear();
 	}
-	return num_of_234_p1_p2;
+	return num_of_234;
 }
 
-Point Game::longestRun(const std::vector<int>& arr, const int size, int token) {
+Point Game::longestRun(const std::vector<int>& arr, const int size, int player) {
 	std::vector<int> best;
 	int idx = 0, len = 1, dist;
+
+	// check missing case (all 0's)
+	if (std::equal(arr.begin() + 1, arr.end(), arr.begin()) && arr[0] == 0) {
+		Point pInfo = Point(0, 0);
+		return pInfo;
+	}
+
 	for (int i = 0; i < size; ++i) {
 		if (i > 0) {
-			if (token == -2) {
+			if (!player) {
 				if (arr[i] == arr[i - 1] && arr[i] != 0) {
 					len += 1;
 				}
@@ -254,7 +258,7 @@ Point Game::longestRun(const std::vector<int>& arr, const int size, int token) {
 				}
 			}
 			else {
-				if (arr[i] == arr[i - 1] && arr[i] == token) {
+				if (arr[i] == arr[i - 1] && arr[i] == player) {
 					len += 1;
 				}
 				else {
@@ -268,7 +272,7 @@ Point Game::longestRun(const std::vector<int>& arr, const int size, int token) {
 
 	// Find max index and length
 	len = *max_element(best.begin(), best.end());
-
+	
 	// to find max index, sum all elements prior to max element
 	dist = distance(best.begin(), max_element(best.begin(), best.end()));
 	for (int j = 0; j < dist; ++j) {
@@ -305,7 +309,7 @@ bool Game::isGameOver() {
 	return false;
 }
 
-Point Game::pointToMove(int col) {
+Point Game::pointToMove(const int col) {
 	// Simulate gravity, look at column and find bottom-most empty spot
 	int row;
 	for (int i = board.getBoardHeight() - 1; i >= 0; --i) {

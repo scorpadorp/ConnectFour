@@ -5,14 +5,14 @@ class Game;
 class Board;
 class GenericPlayer {
 public:
-	GenericPlayer(const std::string& name, std::string token, int value);
-	virtual ~GenericPlayer();
+	GenericPlayer(const std::string& name, std::string token, const int value);
+	virtual ~GenericPlayer() = default;
 	virtual int getInput(Game& game, Board& board) = 0;
-	std::string getName() { return pName; }
-	std::string getToken() { return pToken; }
-	int getValue() { return value; }
-protected:
-	std::string pName;
-	std::string pToken;
-	int value;
+	std::string getName() const { return pName; }
+	std::string getToken() const { return pToken; }
+	int getValue() const { return value; }
+private:
+	const std::string pName;
+	const std::string pToken;
+	const int value;
 };
