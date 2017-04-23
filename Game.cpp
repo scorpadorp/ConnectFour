@@ -1,4 +1,3 @@
-//#include "stdafx.h"
 #include "Game.h"
 #include <algorithm>
 #include <iostream>
@@ -30,7 +29,8 @@ void Game::Play() {
 			ans = (*playerTurn)->getInput(*this, board);
 			legalMove = board.isLegal(ans);
 		}
-		makeMove(pointToMove(ans));
+		Point move = pointToMove(ans);
+		makeMove(move);
 	}
 
 	board.drawBoard(answers, Player1, Player2, hConsole);
@@ -272,7 +272,7 @@ Point Game::longestRun(const std::vector<int>& arr, const int size, int player) 
 
 	// Find max index and length
 	len = *max_element(best.begin(), best.end());
-	
+
 	// to find max index, sum all elements prior to max element
 	dist = distance(best.begin(), max_element(best.begin(), best.end()));
 	for (int j = 0; j < dist; ++j) {

@@ -1,4 +1,3 @@
-//#include "stdafx.h"
 #include "GenericPlayer.h"
 #include <string>
 
