@@ -1,17 +1,14 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "Game.h"
 #include <algorithm>
 #include <iostream>
 #include <string>
+#include <memory>
 
-Game::Game(const std::string& p1name, bool p1human, const std::string& p2name, bool p2human) : 
-	Player1(p1human ? new Human(p1name, "X") : new Bot(p1name, "X")), Player2(p2human ? new Human(p2name, "O") : new Bot(p2name, "O")) {
+Game::Game(const std::string& p1name, bool p1human, const std::string& p2name, bool p2human, double diff1, double diff2) :
+	Player1(p1human ? std::make_unique<Human>(p1name, "X", 1) : std::make_unique<Bot>(p1name, "X", 1, diff1)),
+	Player2(p2human ? std::make_unique<Human>(p2name, "O", 2) : std::make_unique<Bot>(p2name, "O", 2, diff2)) {
 	playerTurn = &Player2;
-}
-
-Game::~Game() { 
-	delete Player1;
-	delete Player2;
 }
 
 void Game::Play() {
@@ -35,6 +32,7 @@ void Game::Play() {
 		}
 		makeMove(pointToMove(ans));
 	}
+
 	board.drawBoard(answers, Player1, Player2, hConsole);
 	std::cout << std::endl << Player1->getName() << " wins: " << p1Wins << std::endl;
 	std::cout << Player2->getName() << " wins: " << p2Wins << std::endl;
@@ -51,67 +49,76 @@ void Game::changePlayer() {
 	}
 }
 
-bool Game::areAllElementsEqual(int arr[], const int size) {
-	for (int i = 0; i < size; i++) {
-		if (arr[i] != arr[0]) {
-			return false;
-		}
-	}
-	return true;
-}
-
-bool Game::wonVert(bool pm) {
-	for (int col = 0; col < board.getBoardWidth(); ++col) {
-		for (int row = 0; row < (board.getBoardHeight() - 4 + 1); ++row) {
-			int temp[4] = { board.getValue(row, col) , board.getValue(row + 1, col),
-				board.getValue(row + 2, col), board.getValue(row + 3, col) };
-
-			if (areAllElementsEqual(temp, 4) && board.getValue(row, col) != 0) {
-				for (int i = row; i < (row + 4); ++i) {
-					if (!pm) {
-						Point soln = Point(i, col);
-						answers.emplace_back(soln);
-					}
-				}
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
-bool Game::wonHoz(bool pm) {
+std::vector<int> Game::wonVert(bool pm, int player) {
+	std::vector<int> num_of_234(4, 0);
 	std::vector<int> temp;
-	for (int row = 0; row < 6; ++row) {
-		for (int k = 0; k < 7; ++k) {
-			temp.emplace_back(board.getValue(row, k));
+	for (int row = 0; row < board.getBoardWidth(); ++row) {
+		for (int col = 0; col < board.getBoardHeight(); ++col) {
+			temp.emplace_back(board.getValue(col, row));
 		}
 
-		Point info = longestRun(temp, 7);
+		Point info = longestRun(temp, board.getBoardHeight(), player);
 		int length = info.x;
 		int index = info.y;
 
-		if (length >= 4 && board.getValue(row, 0 + index) != 0) {
+		for (int len = 2; len < 4; ++len) { //check for lengths of 2 and 3
+			if (length == len)
+				++num_of_234.at(len - 1);
+		}
+
+		if (length >= 4) {
+			for (int i = 0; i < length; ++i) {
+				if (!pm && length >= 4) {
+					Point soln = Point(index + i, row);
+					answers.emplace_back(soln);
+				}
+			}
+			++num_of_234.at(3);
+		}
+		temp.clear();
+	}
+	return num_of_234;
+}
+
+std::vector<int> Game::wonHoz(bool pm, int player) {
+	std::vector<int> num_of_1234(4, 0);
+	std::vector<int> temp;
+	for (int row = 0; row < board.getBoardHeight(); ++row) {
+		for (int k = 0; k < board.getBoardWidth(); ++k) {
+			temp.emplace_back(board.getValue(row, k));
+		}
+
+		Point info = longestRun(temp, board.getBoardWidth(), player);
+		int length = info.x;
+		int index = info.y;
+
+		for (int len = 2; len < 4; ++len) { //check for lengths of 2 and 3
+			if (length == len)
+				++num_of_1234.at(len - 1);
+		}
+
+		if (length >= 4) {
 			for (int i = 0; i < length; ++i) {
 				if (!pm) {
 					Point soln = Point(row, 0 + index + i);
 					answers.emplace_back(soln);
 				}
 			}
-			return true;
+			++num_of_1234.at(3);
 		}
 		temp.clear();
 	}
-	return false;
+	return num_of_1234;
 }
 
-bool Game::wonForwardDiag(bool pm) {
+std::vector<int> Game::wonForwardDiag(bool pm, int player) {
 	/*
 	There are three different lengths of diagonals: (4,5,6).
 	The forward diagonals of length 4 start at board[3][0] & board[5][3].
 	Each dimension (d) after, the starting positions get closer to the
 	bottom-left corner of the board, hence board[3+d][0] and board[5][3-d]
 	*/
+	std::vector<int> num_of_234(4, 0);
 	int length1, index1;
 	int length2, index2;
 	std::vector<int> ans1;
@@ -123,46 +130,57 @@ bool Game::wonForwardDiag(bool pm) {
 			ans2.emplace_back(board.getValue(5 - i, 3 - d + i));
 		}
 
-		Point part1 = longestRun(ans1, ans1.size());
+		Point part1 = longestRun(ans1, ans1.size(), player);
 		length1 = part1.x;
 		index1 = part1.y;
 
-		if (length1 >= 4 && board.getValue(3 + d - index1, 0 + index1) != 0) {
+		for (int len = 2; len < 4; ++len) { //check for lengths of 2 and 3
+			if (length1 == len)
+				++num_of_234.at(len - 1);
+		}
+
+		if (length1 >= 4) {
 			for (int i = 0; i < length1; ++i) {
 				if (!pm) {
 					Point soln = Point(3 + d - index1 - i, 0 + index1 + i);
 					answers.emplace_back(soln);
 				}
 			}
-			return true;
+			++num_of_234.at(3);
 		}
 
-		Point part2 = longestRun(ans2, ans2.size());
+		Point part2 = longestRun(ans2, ans2.size(), player);
 		length2 = part2.x;
 		index2 = part2.y;
 
-		if (length2 >= 4 && board.getValue(5 - index2, 3 - d + index2) != 0) {
+		for (int len = 2; len < 4; ++len) { //check for lengths of 2 and 3
+			if (length2 == len)
+				++num_of_234.at(len - 1);
+		}
+
+		if (length2 >= 4) {
 			for (int i = 0; i < length2; ++i) {
 				if (!pm) {
 					Point soln = Point(5 - index2 - i, 3 - d + index2 + i);
 					answers.emplace_back(soln);
 				}
 			}
-			return true;
+			++num_of_234.at(3);
 		}
 
 		ans1.clear();
 		ans2.clear();
 	}
-	return false;
+	return num_of_234;
 }
 
-bool Game::wonBackwardDiag(bool pm) {
+std::vector<int> Game::wonBackwardDiag(bool pm, int player) {
 	/*
 	Same idea as the forward diagonal, but the starting positions differ
 	and after each dimension the starting positions get closer to the
 	top-left of the board
 	*/
+	std::vector<int> num_of_234(4, 0);
 	int length1, index1;
 	int length2, index2;
 	std::vector<int> ans1;
@@ -174,53 +192,79 @@ bool Game::wonBackwardDiag(bool pm) {
 			ans2.emplace_back(board.getValue(0 + i, 3 - d + i));
 		}
 
-		Point part1 = longestRun(ans1, ans1.size());
+		Point part1 = longestRun(ans1, ans1.size(), player);
 		length1 = part1.x;
 		index1 = part1.y;
 
-		if (length1 >= 4 && board.getValue(2 - d + index1, 0 + index1) != 0) {
+		for (int len = 2; len < 4; ++len) { //check for lengths of 2 and 3
+			if (length1 == len)
+				++num_of_234.at(len - 1);
+		}
+
+		if (length1 >= 4) {
 			for (int i = 0; i < length1; ++i) {
 				if (!pm) {
 					Point soln = Point(2 - d + index1 + i, 0 + index1 + i);
 					answers.emplace_back(soln);
 				}
 			}
-			return true;
+			++num_of_234.at(3);
 		}
 
-		Point part2 = longestRun(ans2, ans2.size());
+		Point part2 = longestRun(ans2, ans2.size(), player);
 		length2 = part2.x;
 		index2 = part2.y;
 
-		if (length2 >= 4 && board.getValue(0 + index2, 3 - d + index2) != 0) {
+		for (int len = 2; len < 4; ++len) { //check for lengths of 2 and 3
+			if (length2 == len)
+				++num_of_234.at(len - 1);
+		}
+
+		if (length2 >= 4) {
 			for (int i = 0; i < length2; ++i) {
 				if (!pm) {
 					Point soln = Point(0 + index2 + i, 3 - d + index2 + i);
 					answers.emplace_back(soln);
 				}
 			}
-			return true;
+			++num_of_234.at(3);
 		}
 
 		ans1.clear();
 		ans2.clear();
 	}
-	return false;
+	return num_of_234;
 }
 
-Point Game::longestRun(const std::vector<int>& arr, const int size) {
+Point Game::longestRun(const std::vector<int>& arr, const int size, int player) {
 	std::vector<int> best;
-	int idx = 0;
-	int len = 1;
-	int dist;
+	int idx = 0, len = 1, dist;
+
+	// check missing case (all 0's)
+	if (std::equal(arr.begin() + 1, arr.end(), arr.begin()) && arr[0] == 0) {
+		Point pInfo = Point(0, 0);
+		return pInfo;
+	}
+
 	for (int i = 0; i < size; ++i) {
 		if (i > 0) {
-			if (arr[i] == arr[i - 1]) {
-				len += 1;
+			if (!player) {
+				if (arr[i] == arr[i - 1] && arr[i] != 0) {
+					len += 1;
+				}
+				else {
+					best.emplace_back(len);
+					len = 1;
+				}
 			}
 			else {
-				best.emplace_back(len);
-				len = 1;
+				if (arr[i] == arr[i - 1] && arr[i] == player) {
+					len += 1;
+				}
+				else {
+					best.emplace_back(len);
+					len = 1;
+				}
 			}
 		}
 	}
@@ -228,14 +272,15 @@ Point Game::longestRun(const std::vector<int>& arr, const int size) {
 
 	// Find max index and length
 	len = *max_element(best.begin(), best.end());
-
+	
 	// to find max index, sum all elements prior to max element
 	dist = distance(best.begin(), max_element(best.begin(), best.end()));
 	for (int j = 0; j < dist; ++j) {
 		idx += best[j];
 	}
+
 	Point pInfo = Point(len, idx);
-	return pInfo; //remember to delete later...
+	return pInfo;
 }
 
 bool Game::isGameOver() {
@@ -264,7 +309,7 @@ bool Game::isGameOver() {
 	return false;
 }
 
-Point Game::pointToMove(int col) {
+Point Game::pointToMove(const int col) {
 	// Simulate gravity, look at column and find bottom-most empty spot
 	int row;
 	for (int i = board.getBoardHeight() - 1; i >= 0; --i) {
@@ -277,9 +322,7 @@ Point Game::pointToMove(int col) {
 }
 
 void Game::makeMove(Point& point) {
-	int ans;
-	((*playerTurn)->getToken() == Player1->getToken()) ? ans = 1 : ans = 2; 
-	board.setValue(point.x, point.y, ans);
+	board.setValue(point.x, point.y, (*playerTurn)->getValue());
 }
 
 void Game::resetGame() {

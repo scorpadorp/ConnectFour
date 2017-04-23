@@ -1,12 +1,11 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 #include "Board.h"
 #include <iostream>
 #include <string>
 
 Board::Board() {}
-Board::~Board() {}
 
-void Board::drawBoard(std::vector<Point>& ans, GenericPlayer* p1, GenericPlayer* p2, HANDLE &h) {
+void Board::drawBoard(std::vector<Point>& ans, std::unique_ptr<GenericPlayer>& p1, std::unique_ptr<GenericPlayer>& p2, HANDLE &h) {
 	std::cout << "\n 1 2 3 4 5 6 7" << std::endl;
 	for (int x = 0; x < boardHeight; ++x) {
 		for (int y = 0; y < boardWidth; ++y) {
@@ -42,8 +41,8 @@ void Board::drawBoard(std::vector<Point>& ans, GenericPlayer* p1, GenericPlayer*
 
 bool Board::isColored(std::vector<Point>& ans, int x, int y) {
 	std::vector<Point>::const_iterator iter;
-	for (iter = ans.begin(); iter < ans.end(); ++iter) {
-		if (x == (*iter).x && y == (*iter).y) {
+	for (auto p : ans) {
+		if (x == p.x && y == p.y) {
 			return true;
 		}
 	}

@@ -1,9 +1,7 @@
-#include "stdafx.h"
+//#include "stdafx.h"
 #include <iostream>
 #include <string>
 #include <vector>
-#include <cstdlib>
-#include <ctime>
 #include <Windows.h>
 #include "Game.h"
 #include "Board.h"
@@ -14,10 +12,11 @@
 using std::cin;
 using std::cout;
 
-int main()
+int getValidInput(int low, int high);
+
+int main() //catch all exceptions thrown
 {
-	srand(static_cast<unsigned int>(time(0)));
-	int ans; 
+	int ans; int diff_b1, diff_b2;
 	bool p1human = true, p2human = true;
 	std::string p1, p2, inp = "yes";
 	cout << "\n-----------------------------------------------------" << std::endl;
@@ -34,27 +33,38 @@ int main()
 		cin >> ans;
 
 		switch (ans) {
-		case 1: std::cout << "\nWhat are the Player names?\n" << "Human 1: \n";
+		case 1: std::cout << "\nWhat are the Player names?\n" << "Player 1: \n";
 			cin >> p1;
 			cout << "\nPlayer 2: \n";
 			cin >> p2;
 			break;
 		case 2: std::cout << "\nGood choice! You will regret it though.\nWhat is your name?: ";
 			cin >> p1;
+			cout << "\nChoose your difficulty:\n";
+			cout << "1) Beginner\n" << "2) Easy\n" << "3) Medium\n";
+			diff_b2 = getValidInput(1, 3);
 			p2 = "BOT";
 			p2human = false;
 			break;
 		case 3: cout << "\nSit back and watch!";
 			p1 = "BOT 1";
 			p2 = "BOT 2";
+			cout << "\nChoose your difficulty for both:\n";
+			cout << "1) Beginner\n" << "2) Easy\n" << "3) Medium\n";
+			cout << "\nFirst Bot: ";
+			diff_b1 = getValidInput(1, 3);
+			cout << "\nSecond Bot: ";
+			diff_b2 = getValidInput(1, 3);
 			p1human = p2human = false;
 			break;
 		default:
 			return 0;
 		}
 
+		cin.clear();
+		cin.ignore(10000, '\n');
 		{
-			Game game(p1, p1human, p2, p2human);
+			Game game(p1, p1human, p2, p2human, diff_b1*2, diff_b2*2);
 			while (inp == "yes" || inp == "y") {
 				game.Play();
 				cout << "\nDo you want to play again? (Y/N): ";
@@ -65,4 +75,21 @@ int main()
 		p1human = p2human = true;
 	}
 	return 0;
+}
+
+int getValidInput(int low, int high) {
+	int choice;
+	bool valid = false;
+
+	while (!valid) {
+		valid = true;
+		std::cin >> choice;
+		if (std::cin.fail() || choice < low || choice > high) {
+			std::cin.clear();
+			std::cin.ignore();
+			valid = false;
+		}
+	}
+
+	return choice;
 }

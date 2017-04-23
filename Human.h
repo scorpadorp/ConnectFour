@@ -5,7 +5,6 @@
 
 class Human : public GenericPlayer {
 public:
-	Human(const std::string& name, std::string token);
-	~Human();
+	Human(const std::string& name, std::string token, const int value);
 	int getInput(Game& game, Board& board);
 };
